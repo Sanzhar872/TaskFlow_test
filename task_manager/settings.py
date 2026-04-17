@@ -2,14 +2,19 @@
 
 from pathlib import Path
 from datetime import timedelta
-
+import os
+from dotenv import load_dotenv # <-- Добавили импорт ainiddin
+# [ОБЩАЯ БАЗА] Базовые пути проекта
 BASE_DIR = Path(__file__).resolve().parent.parent
+# Указываем путь на папку выше (back), где лежит твой .env
+env_path = BASE_DIR.parent / ".env"
+load_dotenv(env_path)
 
-SECRET_KEY = "django-insecure-замени-на-свой-ключ-в-продакшне"
-
+# [РОЛЬ 1 - Безопасность] Секретный ключ и хосты (в будущем здесь будет .env)
+SECRET_KEY = os.getenv("SECRET_KEY")
 DEBUG = True
-
 ALLOWED_HOSTS = ["*"]
+
 
 # ── Приложения ────────────────────────────────────────────────────────────
 INSTALLED_APPS = [
@@ -20,15 +25,20 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    # Сторонние пакеты
+    
+    # [РОЛЬ 1 - Безопасность] Пакеты для API и авторизации
     "rest_framework",
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
+    
+    # [РОЛЬ 3 - Интеграции] Пакет для фоновых задач (рассылок)
     "django_apscheduler",
-    # Наше приложение
+    
+    # [РОЛЬ 2 - Логика] Наше главное приложение (если будут новые, Роль 2 добавит их сюда)
     "core",
 ]
-
+ 
+# [ОБЩАЯ БАЗА] Слой промежуточной обработки (трогать редко)
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -60,6 +70,7 @@ TEMPLATES = [
 WSGI_APPLICATION = "task_manager.wsgi.application"
 
 # ── База данных ───────────────────────────────────────────────────────────
+# [РОЛЬ 2 - Логика] Управление подключением к БД
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
@@ -68,9 +79,11 @@ DATABASES = {
 }
 
 # ── Кастомная модель пользователя ─────────────────────────────────────────
+# [РОЛЬ 1 - Безопасность] Указание на новую модель юзера
 AUTH_USER_MODEL = "core.CustomUser"
 
 # ── Валидация паролей ─────────────────────────────────────────────────────
+# [РОЛЬ 1 - Безопасность] Правила сложности паролей
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
@@ -80,16 +93,18 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # ── Локализация ───────────────────────────────────────────────────────────
 LANGUAGE_CODE = "ru-ru"
+# [РОЛЬ 3 - Интеграции] ВАЖНО: часовой пояс влияет на то, когда отправляются email-уведомления!
 TIME_ZONE     = "Asia/Almaty"
 USE_I18N      = True
 USE_TZ        = True
 
 # ── Статика ───────────────────────────────────────────────────────────────
+# [ОБЩАЯ БАЗА]
 STATIC_URL = "static/"
-
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # ── DRF + JWT ─────────────────────────────────────────────────────────────
+# [РОЛЬ 1 - Безопасность] Глобальные настройки доступа и токенов
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework_simplejwt.authentication.JWTAuthentication",
@@ -108,14 +123,18 @@ SIMPLE_JWT = {
 }
 
 # ── Email ───────────────────────────────────────
-EMAIL_BACKEND      = "django.core.mail.backends.console.EmailBackend"
+# [РОЛЬ 3 - Интеграции] Настройки почтового клиента
+EMAIL_BACKEND      = "django.core.mail.backends.console.EmailBackend" # Заменить на smtp в проде
 EMAIL_HOST         = "smtp.gmail.com"
 EMAIL_PORT         = 587
 EMAIL_USE_TLS      = True
 EMAIL_HOST_USER    = "taskflow872@gmail.com"
-EMAIL_HOST_PASSWORD = "0584 5671"   # код от гугл
+EMAIL_HOST_PASSWORD = "0584 5671"   # код от гугл нужно создать env перенести этот пароль туда и использовать python-dotenv
 DEFAULT_FROM_EMAIL = "taskflow872@gmail.com"
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 
 # ── APScheduler ───────────────────────────────────────────────────────────
+# [РОЛЬ 3 - Интеграции] Настройки планировщика задач (для рассылки писем по дедлайнам)
 APSCHEDULER_DATETIME_FORMAT = "N j, Y, f:s a"
 APSCHEDULER_RUN_NOW_TIMEOUT = 25

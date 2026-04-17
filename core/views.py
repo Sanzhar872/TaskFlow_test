@@ -21,7 +21,7 @@ User = get_user_model()
 
 
 # ══════════════════════════════════════════════
-# AUTH  (Function-Based Views #1, #2)
+# AUTH  (Function-Based Views #1, #2) yeanleak
 # ══════════════════════════════════════════════
 
 @api_view(["POST"])
@@ -60,7 +60,7 @@ def logout_view(request):
 
 
 # ══════════════════════════════════════════════
-# TASKS  (Class-Based View — generics)
+# TASKS  (Class-Based View — generics) sanzhar
 # ══════════════════════════════════════════════
 
 class TaskListCreateView(generics.ListCreateAPIView):
@@ -203,7 +203,7 @@ class WorkspaceAddMembersView(APIView):
     Тело: { "user_ids": [1, 2, 3] }
     """
     permission_classes = [IsAuthenticated]
-
+ 
     def post(self, request, pk):
         try:
             # Добавлять участников может только создатель воркспейса

@@ -6,7 +6,7 @@ from django.utils import timezone
 
 
 # ─────────────────────────────────────────────
-# Менеджер для кастомной модели пользователя
+# Менеджер для кастомной модели пользователя yeanleak
 # ─────────────────────────────────────────────
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, name, password=None):
@@ -48,7 +48,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
 
 # ─────────────────────────────────────────────
-# Модель 2: Рабочее пространство (Workspace)
+# Модель 2: Рабочее пространство (Workspace) sanzhar
 # ─────────────────────────────────────────────
 class Workspace(models.Model):
     name     = models.CharField(max_length=255)
@@ -109,7 +109,7 @@ class Task(models.Model):
         elif not self.is_completed:
             self.completed_at = None
         super().save(*args, **kwargs)
-
+ 
 
 # ─────────────────────────────────────────────
 # Модель 4: Подзадача (Subtask)
