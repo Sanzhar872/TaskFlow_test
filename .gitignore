@@ -1,0 +1,15 @@
+# Окружение
+venv/
+env/
+.env
+
+# Python кэш
+__pycache__/
+*.pyc
+
+# База данных (в репозиторий не кладем!)
+db.sqlite3
+
+# Папки IDE
+.vscode/
+.idea/
