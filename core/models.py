@@ -1,5 +1,5 @@
 # core/models.py
-
+from django.conf import settings
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
 from django.utils import timezone
@@ -84,7 +84,13 @@ class Task(models.Model):
     priority     = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default="medium")
     is_completed = models.BooleanField(default=False)
     completed_at = models.DateTimeField(null=True, blank=True)   # заполняется автоматически
-
+    # Исполнитель задачи (тот, в чью статистику она пойдет)
+    assigned_to = models.ForeignKey(
+        settings.AUTH_USER_MODEL, # Связь с  CustomUser
+        on_delete=models.CASCADE, # Если удалят юзера, удалятся его задачи
+        related_name='assigned_tasks',
+        null=True, blank=True
+    )
     owner     = models.ForeignKey(
         CustomUser,
         on_delete=models.CASCADE,

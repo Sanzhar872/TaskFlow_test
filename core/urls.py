@@ -20,7 +20,8 @@ urlpatterns = [
     # ── Tasks quick actions (FBV) ──────────────────────────────────────────
     path("tasks/<int:pk>/toggle/",    views.toggle_task_status,    name="task-toggle"),    # FBV #3
     path("subtasks/<int:pk>/toggle/", views.toggle_subtask_status, name="subtask-toggle"), # FBV #4
-
+    path("subtasks/<int:pk>/", views.SubtaskDetailView.as_view(), name="subtask-detail"),
+    
     # ── Workspaces (APIView CBV) ───────────────────────────────────────────
     path("workspaces/",                       views.WorkspaceView.as_view(),           name="workspace-list"),   # CBV #1
     path("workspaces/<int:pk>/add-members/",  views.WorkspaceAddMembersView.as_view(), name="workspace-add-members"),

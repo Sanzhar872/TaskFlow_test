@@ -78,15 +78,34 @@ class TaskListCreateView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         # Пользователь видит только свои задачи
-        return Task.objects.filter(owner=self.request.user).select_related(
-            "owner", "workspace"
-        ).prefetch_related("subtasks")
+        queryset = Task.objects.filter(owner=self.request.user)
+        
+        # 2. Проверяем, прислал ли фронтенд ID воркспейса в ссылке (например, /tasks/?workspace=3)
+        workspace_id = self.request.query_params.get('workspace')
+        
+        # 3. Если ID есть, фильтруем задачи именно по этому воркспейсу
+        if workspace_id:
+            queryset = queryset.filter(workspace_id=workspace_id)
+        else:
+            queryset = Task.objects.filter(assigned_to=self.request.user, workspace__isnull=True)    
+        
+        return queryset.select_related("assigned_to", "workspace").prefetch_related("subtasks")
 
     def perform_create(self, serializer):
-        # Привязываем задачу к авторизованному пользователю
-        serializer.save(owner=self.request.user)
+        assigned_to = serializer.validated_data.get('assigned_to')
+
+        # если задача никому не дана(не указано) значит это задача самого пользователя 
+        if not assigned_to:
+            serializer.save(owner = self.request.user, assigned_to = self.request.user)
+        else:
+            serializer.save(owner = self.request.user)
 
 class SubtaskListCreateView(generics.ListCreateAPIView):
+    queryset = Subtask.objects.all()
+    serializer_class = SubtaskSerializer
+    permission_classes = [IsAuthenticated]
+
+class SubtaskDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Subtask.objects.all()
     serializer_class = SubtaskSerializer
     permission_classes = [IsAuthenticated]
@@ -207,22 +226,31 @@ class WorkspaceAddMembersView(APIView):
     def post(self, request, pk):
         try:
             # Добавлять участников может только создатель воркспейса
-            workspace = Workspace.objects.get(pk=pk, creator=request.user)
+            workspace = Workspace.objects.get(pk=pk)
         except Workspace.DoesNotExist:
             return Response(
                 {"detail": "Воркспейс не найден или нет прав."},
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        serializer = AddMembersSerializer(data=request.data)
-        if serializer.is_valid():
-            users = serializer.validated_data["user_ids"]
-            workspace.members.add(*users)   # add() принимает *args
-            return Response(
-                WorkspaceSerializer(workspace).data,
-                status=status.HTTP_200_OK
-            )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        email = request.data.get('email')
+        
+        if not email:
+            return Response({"error": "Email обязателен для приглашения."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # 2. Ищем пользователя по этому email в базе
+        try:
+            user = User.objects.get(email=email)
+            
+            # 3. Добавляем пользователя в воркспейс
+            # ВНИМАНИЕ: Замени 'members' на то название, которое используется у тебя в модели Workspace (например, users, participants и т.д.)
+            workspace.members.add(user) 
+            
+            return Response({"message": "Пользователь успешно добавлен!"}, status=status.HTTP_200_OK)
+            
+        except User.DoesNotExist:
+            # Если такого email нет в базе, возвращаем понятную ошибку
+            return Response({"error": "Пользователь с таким email не найден."}, status=status.HTTP_404_NOT_FOUND)
 
 
 # ══════════════════════════════════════════════

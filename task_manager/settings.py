@@ -6,12 +6,10 @@ import os
 from dotenv import load_dotenv # <-- Добавили импорт ainiddin
 # [ОБЩАЯ БАЗА] Базовые пути проекта
 BASE_DIR = Path(__file__).resolve().parent.parent
-# Указываем путь на папку выше (back), где лежит твой .env
 env_path = BASE_DIR.parent / ".env"
 load_dotenv(env_path)
-
-# [РОЛЬ 1 - Безопасность] Секретный ключ и хосты (в будущем здесь будет .env)
 SECRET_KEY = os.getenv("SECRET_KEY")
+
 DEBUG = True
 ALLOWED_HOSTS = ["*"]
 
@@ -40,6 +38,7 @@ INSTALLED_APPS = [
  
 # [ОБЩАЯ БАЗА] Слой промежуточной обработки (трогать редко)
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -48,6 +47,8 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
+CORS_ALLOW_ALL_ORIGINS = True
 
 ROOT_URLCONF = "task_manager.urls"
 
@@ -123,17 +124,16 @@ SIMPLE_JWT = {
 }
 
 # ── Email ───────────────────────────────────────
-# [РОЛЬ 3 - Интеграции] Настройки почтового клиента
-EMAIL_BACKEND      = "django.core.mail.backends.console.EmailBackend" # Заменить на smtp в проде
+EMAIL_BACKEND      = "django.core.mail.backends.smtp.EmailBackend" # Заменить на smtp в проде
 EMAIL_HOST         = "smtp.gmail.com"
-EMAIL_PORT         = 587
-EMAIL_USE_TLS      = True
-EMAIL_HOST_USER    = "taskflow872@gmail.com"
-EMAIL_HOST_PASSWORD = "0584 5671"   # код от гугл нужно создать env перенести этот пароль туда и использовать python-dotenv
-DEFAULT_FROM_EMAIL = "taskflow872@gmail.com"
+EMAIL_PORT         = 465
+EMAIL_USE_TLS      = False
+EMAIL_USE_SSL       = True
+# EMAIL_HOST_USER    = "taskflow872@gmail.com"
+# EMAIL_HOST_PASSWORD = "0584 5671"   # код от гугл нужно создать env перенести этот пароль туда и использовать python-dotenv
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
-
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 # ── APScheduler ───────────────────────────────────────────────────────────
 # [РОЛЬ 3 - Интеграции] Настройки планировщика задач (для рассылки писем по дедлайнам)
 APSCHEDULER_DATETIME_FORMAT = "N j, Y, f:s a"
